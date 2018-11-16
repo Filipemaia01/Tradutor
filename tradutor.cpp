@@ -286,43 +286,48 @@ void preproc (char arquivo_entrada[], char arquivo_precomp[])  { // funcao que r
   printf("\n -------------------------------------------- \n");
 }
 
-void converteia32(int num_op, int num_dir, FILE *entrada, FILE *saida, char rotulo[], char operacao[], char operando1[], char operando2[], char adicionado[], int mudaop) {
+void converteia32(int num_op, int num_dir, FILE *entrada, FILE *saida, char rotulo[], char operacao[], char operando1[], char operando2[], char adicionado[], int mudaop, int mudaadic) {
 
-  if (mudaop > 0) {
-    if (num_op == 1 || num_op == 2) {
+  if (mudaop > 0) { // se a linha nao eh vazia
+    if (num_op == 1 || num_op == 2) { // add ou sub
       fprintf(saida, "%s  %s,  %s\n", operacao, "eax", operando1);
     }
-    else if (num_op == 5) {
+    else if (num_op == 5) { // jmp
       fprintf(saida, "%s  %s \n", operacao, operando1);
     }
-    else if (num_op == 6) {
+    else if (num_op == 6) { // jmpn
       fprintf(saida, "%s  %s,  %s\n", "cmp", "eax", "zero");
       fprintf(saida, "%s  %s\n", "jl", operando1);
     }
-    else if (num_op == 7) {
+    else if (num_op == 7) { // jmpp
       fprintf(saida, "%s  %s,  %s\n", "cmp", "eax", "zero");
       fprintf(saida, "%s  %s\n", "jg", operando1);
     }
-    else if (num_op == 8) {
+    else if (num_op == 8) { // jmpz
       fprintf(saida, "%s  %s\n", "jz", operando1);
     }
-    else if (num_op == 10) {
-      fprintf(saida, "%s  %s,  %s\n", "mov", "eax", operando1);
+    else if (num_op == 10) { // load
+      fprintf(saida, "%s  %s,  [%s]\n", "mov", "eax", operando1);
     }
-    else if (num_op == 11) {
-      fprintf(saida, "%s  %s,  %s\n", "mov", operando1, "eax");
+    else if (num_op == 11) { // store
+      fprintf(saida, "%s  [%s],  %s\n", "mov", operando1, "eax");
     }
-    else if (num_op == 14) {
+    else if (num_op == 14) { // stop ou return 0
       fprintf(saida, "%s  %s,  %s\n", "mov", "eax", "1");
       fprintf(saida, "%s  %s  %s\n", "mov", "ebx", "0");
       fprintf(saida, "%s  %s\n", "int", "80h");
     }
     else if (num_op == 0 && num_dir !=0) {
-      if (num_dir == 3) {
-        fprintf(saida, "%s  %s%s\n", operacao, " .", operando1);
+      if (num_dir == 1) { // space
+        if (mudaadic == 0) { // vetor
+          fprintf(saida, "%s  %s  %s\n", rotulo, "resdw", "1");
+        }
+        else {
+          fprintf(saida, "%s  %s%s\n", rotulo, "resdw", adicionado);
+        }
       }
-      else if (num_dir == 8) {
-        fprintf(saida, "%s  %s  %s\n", rotulo, "EQU", operando1);
+      else if (num_dir == 3) { // section
+        fprintf(saida, "%s  %s%s\n", operacao, " .", operando1);
       }
     }
   }
@@ -372,7 +377,7 @@ int main (int argc, char *argv[]){
     if (letra == '\n'){ //se a linha terminou//
       num_op = descobreinstrucao(operacao);
       num_dir = descobrediretiva(operacao);
-      converteia32(num_op, num_dir, entrada, saida, rotulo, operacao, operando1, operando2, adicionado, mudaop);
+      converteia32(num_op, num_dir, entrada, saida, rotulo, operacao, operando1, operando2, adicionado, mudaop, mudaadic);
       parametro = 1;
       mudarot = 0; mudaop = 0; mudaop1 = 0; mudaop2 = 0; mudaadic = 0;
       cout << endl;
