@@ -290,44 +290,84 @@ void converteia32(int num_op, int num_dir, FILE *entrada, FILE *saida, char rotu
 
   if (mudaop > 0) { // se a linha nao eh vazia
     if (num_op == 1 || num_op == 2) { // add ou sub
-      fprintf(saida, "%s  %s,  %s\n", operacao, "eax", operando1);
+      fprintf(saida, "\t%s  %s,  %s\n", operacao, "eax", operando1);
     }
     else if (num_op == 5) { // jmp
-      fprintf(saida, "%s  %s \n", operacao, operando1);
+      fprintf(saida, "\t%s  %s \n", operacao, operando1);
     }
     else if (num_op == 6) { // jmpn
-      fprintf(saida, "%s  %s,  %s\n", "cmp", "eax", "zero");
-      fprintf(saida, "%s  %s\n", "jl", operando1);
+      fprintf(saida, "\t%s  %s,  %s\n", "cmp", "eax", "zero");
+      fprintf(saida, "\t%s  %s\n", "jl", operando1);
     }
     else if (num_op == 7) { // jmpp
-      fprintf(saida, "%s  %s,  %s\n", "cmp", "eax", "zero");
-      fprintf(saida, "%s  %s\n", "jg", operando1);
+      fprintf(saida, "\t%s  %s,  %s\n", "cmp", "eax", "zero");
+      fprintf(saida, "\t%s  %s\n", "jg", operando1);
     }
     else if (num_op == 8) { // jmpz
-      fprintf(saida, "%s  %s\n", "jz", operando1);
+      fprintf(saida, "\t%s  %s\n", "jz", operando1);
     }
     else if (num_op == 10) { // load
-      fprintf(saida, "%s  %s,  [%s]\n", "mov", "eax", operando1);
+      fprintf(saida, "\t%s  %s,  [%s]\n", "mov", "eax", operando1);
     }
     else if (num_op == 11) { // store
-      fprintf(saida, "%s  [%s],  %s\n", "mov", operando1, "eax");
+      fprintf(saida, "\t%s  [%s],  %s\n", "mov", operando1, "eax");
+    }
+    else if (num_op == 12) { // input
+      fprintf(saida, "\t%s  %s\n", "push", "eax");
+      fprintf(saida, "\t%s  %s,  %s\n", "mov", "eax", "4");
+      fprintf(saida, "\t%s  %s,  %s\n", "mov", "ebx", "1");
+      fprintf(saida, "\t%s  %s,  %s\n", "mov", "ecx", "msg_input");
+      fprintf(saida, "\t%s  %s,  %s\n", "mov", "edx", "tam_msgin");
+      fprintf(saida, "\t%s  %s\n", "int", "80h");
+      fprintf(saida, "\t%s  %s,  %s\n", "mov", "eax", "3");
+      fprintf(saida, "\t%s  %s,  %s\n", "mov", "ebx", "0");
+      fprintf(saida, "\t%s  %s,  %s\n", "mov", "ecx", "num_input");
+      fprintf(saida, "\t%s  %s,  %s\n", "mov", "edx", "4");
+      fprintf(saida, "\t%s  %s\n", "int", "80h");
+      fprintf(saida, "\t%s  %s\n", "push", "num_input");
+      fprintf(saida, "\t%s  %s\n", "push", "eax");
+      fprintf(saida, "\t%s  %s\n", "call", "input");
+      fprintf(saida, "\t%s  [%s],  %s\n", "mov", operando1, "eax");
+      fprintf(saida, "\t%s  %s\n", "pop", "eax");
+    }
+    else if (num_op == 13) {
+      fprintf(saida, "\t%s  %s\n", "push", "eax");
+      fprintf(saida, "\t%s  %s\n", "push", "num_output");
+      fprintf(saida, "\t%s  %s  [%s]\n", "push", "dword", operando1);
+      fprintf(saida, "\t%s  %s,  %s\n", "mov", "eax", "4");
+      fprintf(saida, "\t%s  %s,  %s\n", "mov", "ebx", "1");
+      fprintf(saida, "\t%s  %s,  %s\n", "mov", "ecx", "msg_output");
+      fprintf(saida, "\t%s  %s,  %s\n", "mov", "edx", "tam_msgout");
+      fprintf(saida, "\t%s  %s\n", "int", "80h");
+      fprintf(saida, "\t%s  %s\n", "call", "output");
     }
     else if (num_op == 14) { // stop ou return 0
-      fprintf(saida, "%s  %s,  %s\n", "mov", "eax", "1");
-      fprintf(saida, "%s  %s  %s\n", "mov", "ebx", "0");
-      fprintf(saida, "%s  %s\n", "int", "80h");
+      fprintf(saida, "\t%s  %s,  %s\n", "mov", "eax", "1");
+      fprintf(saida, "\t%s  %s  %s\n", "mov", "ebx", "0");
+      fprintf(saida, "\t%s  %s\n", "int", "80h");
+      fprintf(saida, "\n\n\n");
     }
     else if (num_op == 0 && num_dir !=0) {
       if (num_dir == 1) { // space
         if (mudaadic == 0) { // vetor
-          fprintf(saida, "%s  %s  %s\n", rotulo, "resdw", "1");
+          fprintf(saida, "\t%s  %s  %s\n", rotulo, "resd", "1");
         }
         else {
-          fprintf(saida, "%s  %s%s\n", rotulo, "resdw", adicionado);
+          fprintf(saida, "\t%s  %s%s\n", rotulo, "resd", adicionado);
         }
       }
       else if (num_dir == 3) { // section
         fprintf(saida, "%s  %s%s\n", operacao, " .", operando1);
+        if (strcmp(operando1, "data")==0) {
+          fprintf(saida, "\t%s  %s  '%s'\n", "msg_input", "db", "input: ");
+          fprintf(saida, "\t%s  %s  %s\n", "tam_msgin", "EQU", "$-msg_input");
+          fprintf(saida, "\t%s  %s  '%s'\n", "msg_output", "db", "output: ");
+          fprintf(saida, "\t%s  %s  %s\n", "tam_msgout", "EQU", "$-msg_output");
+        }
+        if (strcmp(operando1, "bss")==0) {
+          fprintf(saida, "\t%s  %s  %s\n", "num_input", "resb", "10");
+          fprintf(saida, "\t%s  %s  %s\n", "num_output", "resb", "10");
+        }
       }
     }
   }
