@@ -1,3 +1,27 @@
+/*
+Trabalho 2 de Software Basico (Tradutor)
+Alunos:
+- Filipe Maia Soares  15/0051409
+- Carolina Araujo Carneiro  12/0113422
+
+Instrucoes de Compilacao(codigo em c++):
+Usando g++ 7.2.0 (Ubuntu 17.10)
+g++ tradutor.cpp -o tradutor
+
+Instrucoes de Execucao(codigo em c++):
+./tradutor entrada
+
+Instrucoes de Compilacao(codigo em assemblya ia32):
+Usando g++ 7.2.0 (Ubuntu 17.10)
+nasm -f elf -o entrada.o entrada.s
+ld -m elf_i386 -o entrada entrada.o
+
+Instrucoes de Execucao(codigo em c++):
+./entrada
+
+entrada: nome do arquivo que se deseja montar sem o ".asm"
+Obs: os arquivos de saida terao os mesmos nomes do entrada com as extensoes ".pre" e ".s"
+*/
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
@@ -314,6 +338,11 @@ void converteia32(int num_op, int num_dir, FILE *entrada, FILE *saida, char rotu
       fprintf(saida, "\t%s  [%s]\n", "push  dword", operando1);
       fprintf(saida, "\t%s\n", "call  multiplica");
     }
+    else if (num_op == 4) {
+      fprintf(saida, "\t%s\n", "cdq");
+      fprintf(saida, "\t%s  [%s]\n", "mov  ebx,", operando1);
+      fprintf(saida, "\t%s\n", "idiv  ebx");
+    }
     else if (num_op == 5) { // jmp
       fprintf(saida, "\t%s  %s \n", operacao, operando1);
     }
@@ -493,6 +522,7 @@ void converteia32(int num_op, int num_dir, FILE *entrada, FILE *saida, char rotu
       fprintf(saida, "\t%s\n", "dec  ecx");
       fprintf(saida, "\t%s\n", "jmp  transcreve");
       fprintf(saida, "%s\n", "fim_transcreve:");
+      fprintf(saida, "\t%s\n", "mov  byte  [eax+esi],  0ah");
       fprintf(saida, "\t%s\n", "mov  eax,  esi");
       fprintf(saida, "\t%s\n", "leave");
       fprintf(saida, "\t%s\n", "ret  12");
@@ -504,6 +534,8 @@ void converteia32(int num_op, int num_dir, FILE *entrada, FILE *saida, char rotu
       fprintf(saida, "\t%s\n", "mov  esi,  [ebp+8]");
       fprintf(saida, "\t%s\n", "xor  ecx,  ecx");
       fprintf(saida, "%s\n", "printa:");
+      fprintf(saida, "\t%s\n", "cmp  byte  [ebx+ecx],  0ah");
+      fprintf(saida, "\t%s\n", "jz  fim_printa");
       fprintf(saida, "\t%s\n", "cmp  esi,  1");
       fprintf(saida, "\t%s\n", "jl  fim_printa");
       fprintf(saida, "\t%s\n", "push  ecx");
@@ -611,7 +643,7 @@ void converteia32(int num_op, int num_dir, FILE *entrada, FILE *saida, char rotu
       fprintf(saida, "\t%s\n", "int  80h");
       fprintf(saida, "\t%s\n", "push  string_in");
       fprintf(saida, "\t%s  %s\n", "push",  operando1);
-      fprintf(saida, "\t%s  %s\n", "mov  ecx,",  operando2);
+      fprintf(saida, "\t%s\n", "mov  ecx,  eax");
       fprintf(saida, "\t%s\n", "push  ecx");
       fprintf(saida, "\t%s\n", "call  s_input");
       fprintf(saida, "\t%s\n", "pop  eax");
@@ -696,7 +728,7 @@ int main (int argc, char *argv[]){
   strcpy(arquivo_saida, argv[1]);
   strcat(arquivo_entrada, ".asm");
   strcat(arquivo_precomp, ".pre");
-  strcat(arquivo_saida, ".txt");
+  strcat(arquivo_saida, ".s");
 
   cout << arquivo_entrada << " ";
   cout << arquivo_saida << endl;
