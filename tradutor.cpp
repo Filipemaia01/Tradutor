@@ -382,13 +382,16 @@ void converteia32(int num_op, int num_dir, FILE *entrada, FILE *saida, char rotu
       fprintf(saida, "\t%s  %s,  %s\n", "mov", "ecx", "num_input");
       fprintf(saida, "\t%s  %s,  %s\n", "mov", "edx", "12");
       fprintf(saida, "\t%s  %s\n", "int", "80h");
+      fprintf(saida, "\t%s\n", "push  eax");
       fprintf(saida, "\t%s  %s\n", "push", "num_input");
       fprintf(saida, "\t%s  %s\n", "push", "eax");
       fprintf(saida, "\t%s  %s\n", "call", "input");
       fprintf(saida, "\t%s  [%s],  %s\n", "mov", operando1, "eax");
       fprintf(saida, "\t%s  %s\n", "pop", "eax");
+      fprintf(saida, "\t%s\n", "pop  eax");
     }
     else if (num_op == 13) { // output
+      fprintf(saida, "\t%s\n", "push  eax");
       fprintf(saida, "\t%s  %s\n", "push", "eax");
       fprintf(saida, "\t%s  %s\n", "push", "num_input");
       fprintf(saida, "\t%s  %s  [%s]\n", "push", "dword", operando1);
@@ -403,6 +406,7 @@ void converteia32(int num_op, int num_dir, FILE *entrada, FILE *saida, char rotu
       fprintf(saida, "\t%s\n", "mov  ecx,  endl");
       fprintf(saida, "\t%s\n", "mov  edx,  tam_endl");
       fprintf(saida, "\t%s\n", "int  80h");
+      fprintf(saida, "\t%s\n", "pop  eax");
       fprintf(saida, "\t%s  %s\n", "pop", "eax");
     }
     else if (num_op == 14) { // stop ou return 0
@@ -452,7 +456,7 @@ void converteia32(int num_op, int num_dir, FILE *entrada, FILE *saida, char rotu
       fprintf(saida, "%s\n", "negativo_in:");
       fprintf(saida, "\t%s  %s\n", "neg", "eax");
       fprintf(saida, "%s\n", "positivo_in:");
-      //fprintf(saida, "\t%s  %s,  %s\n", "mov", "eax", "esi");
+      fprintf(saida, "\t%s  %s,  %s\n", "mov", "[ebp+16]", "esi");
       fprintf(saida, "\t%s\n", "leave");
       fprintf(saida, "\t%s\n", "ret 8");
       fprintf(saida, "\n\n\n");
@@ -479,11 +483,13 @@ void converteia32(int num_op, int num_dir, FILE *entrada, FILE *saida, char rotu
       fprintf(saida, "\t%s\n", "inc  ecx");
       fprintf(saida, "\t%s\n", "jmp  divide");
       fprintf(saida, "%s\n", "fim_d:");
+      fprintf(saida, "\t%s\n", "mov  [ebp+16],  ecx");
       fprintf(saida, "\t%s\n", "cmp  esi,  1");
       fprintf(saida, "\t%s\n", "jne  positivo_out");
       fprintf(saida, "\t%s\n", "inc  ecx");
       fprintf(saida, "\t%s\n", "mov  byte  [edi+ecx],  0x2D");
       fprintf(saida, "%s\n", "positivo_out:");
+      fprintf(saida, "\t%s\n", "inc  dword  [ebp+16]");
       fprintf(saida, "\t%s\n", "cmp  ecx,  0");
       fprintf(saida, "\t%s\n", "jl  fimfunc");
       fprintf(saida, "\t%s\n", "push  ecx");
@@ -523,7 +529,7 @@ void converteia32(int num_op, int num_dir, FILE *entrada, FILE *saida, char rotu
       fprintf(saida, "\t%s\n", "jmp  transcreve");
       fprintf(saida, "%s\n", "fim_transcreve:");
       fprintf(saida, "\t%s\n", "mov  byte  [eax+esi],  0ah");
-      fprintf(saida, "\t%s\n", "mov  eax,  esi");
+      fprintf(saida, "\t%s\n", "mov  [ebp+20],  esi");
       fprintf(saida, "\t%s\n", "leave");
       fprintf(saida, "\t%s\n", "ret  12");
       fprintf(saida, "\n\n\n");
@@ -551,7 +557,7 @@ void converteia32(int num_op, int num_dir, FILE *entrada, FILE *saida, char rotu
       fprintf(saida, "\t%s\n", "inc  ecx");
       fprintf(saida, "\t%s\n", "jmp  printa");
       fprintf(saida, "%s\n", "fim_printa:");
-      fprintf(saida, "\t%s\n", "mov  eax,  ecx");
+      fprintf(saida, "\t%s\n", "mov  [ebp+16],  ecx");
       fprintf(saida, "\t%s\n", "leave");
       fprintf(saida, "\t%s\n", "ret  8");
       fprintf(saida, "\n\n\n");
@@ -567,7 +573,7 @@ void converteia32(int num_op, int num_dir, FILE *entrada, FILE *saida, char rotu
       fprintf(saida, "\t%s\n", "mov  al,  [ecx]");
       fprintf(saida, "\t%s\n", "mov  ebx,  [ebp+8]");
       fprintf(saida, "\t%s\n", "mov  [ebx],  al");
-      fprintf(saida, "\t%s\n", "mov  eax,  1");
+      fprintf(saida, "\t%s\n", "mov  dword  [ebp+16],  1");
       fprintf(saida, "\t%s\n", "leave");
       fprintf(saida, "\t%s\n", "ret  8");
       fprintf(saida, "\n\n\n");
@@ -579,7 +585,7 @@ void converteia32(int num_op, int num_dir, FILE *entrada, FILE *saida, char rotu
       fprintf(saida, "\t%s\n", "mov  ecx,  [ebp+8]");
       fprintf(saida, "\t%s\n", "mov  edx,  1");
       fprintf(saida, "\t%s\n", "int  80h");
-      fprintf(saida, "\t%s\n", "mov  eax,  1");
+      fprintf(saida, "\t%s\n", "mov  dword  [ebp+12],  1");
       fprintf(saida, "\t%s\n", "leave");
       fprintf(saida, "\t%s\n", "ret  4");
       fprintf(saida, "\n\n\n");
@@ -613,9 +619,11 @@ void converteia32(int num_op, int num_dir, FILE *entrada, FILE *saida, char rotu
       fprintf(saida, "\t%s\n", "mov  ecx,  msg_cinput");
       fprintf(saida, "\t%s\n", "mov  edx,  tam_msgcin");
       fprintf(saida, "\t%s\n", "int  80h");
+      fprintf(saida, "\t%s\n", "push  eax");
       fprintf(saida, "\t%s\n", "push  string_in");
       fprintf(saida, "\t%s  %s\n", "push", operando1);
       fprintf(saida, "\t%s\n", "call  c_input");
+      fprintf(saida, "\t%s\n", "pop  eax");
       fprintf(saida, "\t%s\n", "pop  eax");
     }
     else if (num_op == 16) { // c_output
@@ -625,6 +633,7 @@ void converteia32(int num_op, int num_dir, FILE *entrada, FILE *saida, char rotu
       fprintf(saida, "\t%s\n", "mov  ecx,  msg_coutput");
       fprintf(saida, "\t%s\n", "mov  edx,  tam_msgcout");
       fprintf(saida, "\t%s\n", "int  80h");
+      fprintf(saida, "\t%s  %s\n", "push", "eax");
       fprintf(saida, "\t%s  %s\n", "push", operando1);
       fprintf(saida, "\t%s\n", "call  c_output");
       fprintf(saida, "\t%s\n", "mov  eax,  4");
@@ -632,6 +641,7 @@ void converteia32(int num_op, int num_dir, FILE *entrada, FILE *saida, char rotu
       fprintf(saida, "\t%s\n", "mov  ecx,  endl");
       fprintf(saida, "\t%s\n", "mov  edx,  tam_endl");
       fprintf(saida, "\t%s\n", "int  80h");
+      fprintf(saida, "\t%s\n", "pop  eax");
       fprintf(saida, "\t%s\n", "pop  eax");
     }
     else if (num_op == 19) { //s_input
@@ -641,11 +651,13 @@ void converteia32(int num_op, int num_dir, FILE *entrada, FILE *saida, char rotu
       fprintf(saida, "\t%s\n", "mov  ecx,  msg_sinput");
       fprintf(saida, "\t%s\n", "mov  edx,  tam_msgsin");
       fprintf(saida, "\t%s\n", "int  80h");
+      fprintf(saida, "\t%s\n", "push  eax");
       fprintf(saida, "\t%s\n", "push  string_in");
       fprintf(saida, "\t%s  %s\n", "push",  operando1);
       fprintf(saida, "\t%s\n", "mov  ecx,  eax");
       fprintf(saida, "\t%s\n", "push  ecx");
       fprintf(saida, "\t%s\n", "call  s_input");
+      fprintf(saida, "\t%s\n", "pop  eax");
       fprintf(saida, "\t%s\n", "pop  eax");
     }
     else if (num_op == 20) { // s_output
@@ -655,6 +667,7 @@ void converteia32(int num_op, int num_dir, FILE *entrada, FILE *saida, char rotu
       fprintf(saida, "\t%s\n", "mov  ecx,  msg_soutput");
       fprintf(saida, "\t%s\n", "mov  edx,  tam_msgsout");
       fprintf(saida, "\t%s\n", "int  80h");
+      fprintf(saida, "\t%s\n", "push  eax");
       fprintf(saida, "\t%s  %s\n", "push",  operando1);
       fprintf(saida, "\t%s  %s\n", "mov  ecx,",  operando2);
       fprintf(saida, "\t%s\n", "push  ecx");
@@ -664,6 +677,7 @@ void converteia32(int num_op, int num_dir, FILE *entrada, FILE *saida, char rotu
       fprintf(saida, "\t%s\n", "mov  ecx,  endl");
       fprintf(saida, "\t%s\n", "mov  edx,  tam_endl");
       fprintf(saida, "\t%s\n", "int  80h");
+      fprintf(saida, "\t%s\n", "pop  eax");
       fprintf(saida, "\t%s\n", "pop  eax");
     }
     else if (num_op == 0 && num_dir !=0) {
